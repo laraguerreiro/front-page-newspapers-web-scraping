@@ -3,3 +3,7 @@ Expresso/
 Diario/
 Publico/
 Jornal/
+selenium/
+*.pdf
+*.pkl
+.env
