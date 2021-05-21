@@ -15,7 +15,41 @@ from selenium.webdriver.support import expected_conditions as EC
 from dotenv import load_dotenv
 load_dotenv()
 
+# pegar a url do PDF. para tanto o código html da página foi estudado para ver onde ele estava
+def getPDFUrl(url, browser):
+  browser.get(url) 
+  soup = BeautifulSoup(browser.page_source, 'lxml')
+  pdfElementPrincipal = soup.find_all("ul", {"class": "print-covers__list"})[0]
+  pdfElement = pdfElementPrincipal.find_all("a")[1]
+  pdfUrl = pdfElement.get('href')
+  return pdfUrl
 
+# pegar o PDF a partir da url definida.
+def getPDF(date, browser):
+  year = date.strftime("%Y")
+  path = f'PublicoPDF/{year}'
+  Path(path).mkdir(parents=True, exist_ok=True)
+  url = f'https://www.publico.pt/jornal?date={date.strftime("%Y%m%d")}'
+  PDFUrl = getPDFUrl(url,browser) 
+  PDFFileName = f'{path}/P_{date.strftime("%Y_%m_%d")}.pdf'
+  publico_auth = browser.get_cookie('publico_auth')
+  if publico_auth is not None:
+    cookiesRequest = { 'publico_auth': publico_auth['value']}
+    pdfContent = requests.post(PDFUrl, stream = True, cookies = cookiesRequest)
+    if pdfContent.status_code == 200:
+      pdfContent.raw.decode_content = True 
+      with open(PDFFileName,'wb') as f:
+        shutil.copyfileobj(pdfContent.raw, f)
+        print(f'done: {date}')
+    else:
+        print(f'error in url: {url}')
+  else:
+    print("Error Auth")
+    os.remove("cookies.pkl")
+
+
+# o modulo selenium simula um navegador, o que é necessário visto que o Público
+#  exige que se esteja autenticado para ter acesso aos pdfs de seu arquivo.
 def getBrowser():
   chrome_options = Options()
   chrome_options.add_argument("--headless")
@@ -46,29 +80,19 @@ def getBrowser():
     pickle.dump( browser.get_cookies(), open("cookies.pkl","wb"))
   return browser
 
+
+
 browser = getBrowser()
-soup = BeautifulSoup(browser.page_source, 'lxml')
-pdfElementPrincipal = soup.find_all("ul", {"class": "print-covers__list"})[0]
-pdfElement = pdfElementPrincipal.find_all("a")[1]
-pdfUrl = pdfElement.get('href')
-fileName = f'apagar_{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.pdf'
-publico_auth = browser.get_cookie('publico_auth')
-if publico_auth is not None:
-  cookiesRequest = { 'publico_auth': publico_auth['value']}
-  pdfContent = requests.post(pdfUrl, stream = True, cookies = cookiesRequest)
-  if pdfContent.status_code == 200:
-    pdfContent.raw.decode_content = True 
-    with open(fileName,'wb') as f:
-      shutil.copyfileobj(pdfContent.raw, f)
-      print(f'done: {pdfUrl}')
-  else:
-      print(f'error in url: {pdfUrl}')
-else:
-  print("Error Auth")
-  os.remove("cookies.pkl")
-
-browser.quit()
-
+periods = ["2017-10-15/2017-11-15", "2018-10-15/2018-11-15", "2019-10-15/2019-11-15", "2020-10-15/2020-11-15"]
+for period in periods:
+    periodArray = period.split('/')
+    start = datetime.fromisoformat(periodArray[0])
+    end = datetime.fromisoformat(periodArray[1])
+    current = start
+    while current <= end:
+      getPDF(current, browser)
+      time.sleep(3)
+      current += timedelta(days=1)
 
 
 
