@@ -54,7 +54,7 @@ def getCover(date):
 
 
 
-periods = ["2017-10-15/2017-11-15", "2018-10-15/2018-11-15", "2019-10-15/2019-11-15", "2020-10-15/2020-11-15"]
+periods = ["2019-10-15/2019-11-15", "2020-11-15/2020-12-15"]
 for period in periods:
     periodArray = period.split('/')
     start = datetime.fromisoformat(periodArray[0])
