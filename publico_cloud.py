@@ -42,5 +42,5 @@ stopwords.update(
 
     ]
 )
-wc = WordCloud(stopwords=stopwords, min_word_length=5, width=1980, height=720).generate(text)
+wc = WordCloud(stopwords=stopwords, min_word_length=5, width=1980, height=720, max_words=1000000).generate(text)
 wc.to_file("apagar_cloud.png")
