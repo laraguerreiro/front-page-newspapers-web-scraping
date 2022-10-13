@@ -12,8 +12,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from dotenv import load_dotenv
-load_dotenv()
+#from dotenv import load_dotenv
+#load_dotenv()
 
 # pegar a url do PDF. para tanto o código html da página foi estudado para ver onde ele estava
 def getPDFUrl(url, browser):
@@ -61,7 +61,7 @@ def getBrowser():
   chrome_prefs["profile.default_content_settings"] = {"images": 2}
   browser = webdriver.Chrome(options=chrome_options)
   browser.implicitly_wait(10)
-  urlLogin = "https://www.publico.pt/login/"
+  urlLogin = "https://www.publico.pt"
   urlJornal = "https://www.publico.pt/jornal/"
   browser.get(urlJornal)
   if os.path.isfile('cookies.pkl'):
@@ -70,10 +70,13 @@ def getBrowser():
       browser.add_cookie(cookie)
   else:
     browser.get(urlLogin)
-    WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.CLASS_NAME, "css-fxmqu"))).click()
-    WebDriverWait(browser, 20).until(EC.text_to_be_present_in_element_value((By.CLASS_NAME, "login-form__button"), "Entrar"))
-    browser.find_element_by_id("user-email").send_keys(os.environ.get("PUBLICO_USERNAME"))
-    browser.find_element_by_id("user-password").send_keys(os.environ.get("PUBLICO_PASSWORD"))
+    WebDriverWait(browser, 20).until(EC.presence_of_element_located((By.CLASS_NAME, "float-right masthead__button user-tools__item--action"))).click()
+    print("Clicou no login")
+    WebDriverWait(browser, 20).until(EC.text_to_be_present_in_element_value((By.CLASS_NAME, "login-form__button"), "Continuar"))
+    browser.find_element_by_id("login-email-input").send_keys("email")
+    browser.find_element_by_class_name("login-form__button").click()
+    WebDriverWait(browser, 5)
+    browser.find_element_by_id("login-password-input").send_keys("123")
     browser.find_element_by_class_name("login-form__button").click()
     WebDriverWait(browser, 20)
     browser.get(urlJornal)
@@ -83,7 +86,7 @@ def getBrowser():
 
 
 browser = getBrowser()
-periods = ["2017-10-15/2017-11-15", "2018-10-15/2018-11-15", "2019-10-15/2019-11-15", "2020-10-15/2020-11-15"]
+periods = ["2017-10-15/2017-11-15"]
 for period in periods:
     periodArray = period.split('/')
     start = datetime.fromisoformat(periodArray[0])
