@@ -19,7 +19,8 @@ load_dotenv()
 def getPDFUrl(url, browser):
   browser.get(url) 
   soup = BeautifulSoup(browser.page_source, 'lxml')
-  pdfElementPrincipal = soup.find_all("ul", {"class": "print-covers__list"})[0]
+  print_cover_list = soup.find_all("ul", {"class": "print-covers__list"})
+  pdfElementPrincipal = print_cover_list[0]
   pdfElement = pdfElementPrincipal.find_all("a")[1]
   pdfUrl = pdfElement.get('href')
   return pdfUrl
@@ -61,7 +62,7 @@ def getBrowser():
   chrome_prefs["profile.default_content_settings"] = {"images": 2}
   browser = webdriver.Chrome(options=chrome_options)
   browser.implicitly_wait(10)
-  urlLogin = "https://www.publico.pt/login/"
+  urlLogin = "https://www.publico.pt"
   urlJornal = "https://www.publico.pt/jornal/"
   browser.get(urlJornal)
   if os.path.isfile('cookies.pkl'):
@@ -71,19 +72,23 @@ def getBrowser():
   else:
     browser.get(urlLogin)
     WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.CLASS_NAME, "css-fxmqu"))).click()
-    WebDriverWait(browser, 20).until(EC.text_to_be_present_in_element_value((By.CLASS_NAME, "login-form__button"), "Entrar"))
-    browser.find_element_by_id("user-email").send_keys(os.environ.get("PUBLICO_USERNAME"))
-    browser.find_element_by_id("user-password").send_keys(os.environ.get("PUBLICO_PASSWORD"))
+    browser.find_element_by_xpath('//*[@id="masthead-container"]/div[2]/ul/li[3]/button').click()
+    WebDriverWait(browser, 20).until(EC.text_to_be_present_in_element_value((By.CLASS_NAME, "login-form__button"), "Continuar"))
+    browser.find_element_by_id("login-email-input").send_keys(os.environ.get("PUBLICO_USERNAME"))
     browser.find_element_by_class_name("login-form__button").click()
-    WebDriverWait(browser, 20)
-    browser.get(urlJornal)
+    WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.ID, "login-password-input")))
+    browser.find_element_by_id("login-password-input").send_keys(os.environ.get("PUBLICO_PASSWORD"))
+    browser.find_element_by_xpath('//*[@id="login-form-password"]/div/div[4]/input').click()
+    WebDriverWait(browser, 40)
+    browser.get(urlLogin)
+    browser.get(urlLogin)
     pickle.dump( browser.get_cookies(), open("cookies.pkl","wb"))
   return browser
 
 
 
 browser = getBrowser()
-periods = ["2017-10-15/2017-11-15", "2018-10-15/2018-11-15", "2019-10-15/2019-11-15", "2020-10-15/2020-11-15"]
+periods = ["2017-10-15/2017-10-16"]
 for period in periods:
     periodArray = period.split('/')
     start = datetime.fromisoformat(periodArray[0])
