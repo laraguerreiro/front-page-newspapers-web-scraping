@@ -88,16 +88,20 @@ def getBrowser():
 
 
 browser = getBrowser()
-periods = ["2017-10-15/2017-10-16"]
+periods = ["2021-04-09/2021-05-01"]
 for period in periods:
     periodArray = period.split('/')
     start = datetime.fromisoformat(periodArray[0])
     end = datetime.fromisoformat(periodArray[1])
     current = start
     while current <= end:
-      getPDF(current, browser)
-      time.sleep(3)
-      current += timedelta(days=1)
+      try:
+        getPDF(current, browser)
+        current += timedelta(days=1)
+      except:
+        print (current)
+      time.sleep(5)
+      
 
 
 
