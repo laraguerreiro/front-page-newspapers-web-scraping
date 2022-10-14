@@ -93,7 +93,7 @@ def getBrowser():
 
 
 browser = getBrowser()
-periods = ["2021-01-01/2021-12-31"]
+periods = ["2021-03-17/2021-12-31"]
 for period in periods:
     periodArray = period.split('/')
     start = datetime.fromisoformat(periodArray[0])
@@ -104,6 +104,7 @@ for period in periods:
         getPDF(current, browser)
         current += timedelta(days=1)
       except:
+        browser = getBrowser()
         print (current)
       time.sleep(2)
       
