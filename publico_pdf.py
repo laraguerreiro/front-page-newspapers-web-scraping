@@ -17,7 +17,7 @@ load_dotenv()
 
 # pegar a url do PDF. para tanto o código html da página foi estudado para ver onde ele estava
 def getPDFUrl(url, browser):
-  browser.get(url) 
+  browser.get(url)
   soup = BeautifulSoup(browser.page_source, 'lxml')
   print_cover_list = soup.find_all("ul", {"class": "print-covers__list"})
   pdfElementPrincipal = print_cover_list[0]
@@ -31,22 +31,26 @@ def getPDF(date, browser):
   path = f'PublicoPDF/{year}'
   Path(path).mkdir(parents=True, exist_ok=True)
   url = f'https://www.publico.pt/jornal?date={date.strftime("%Y%m%d")}'
-  PDFUrl = getPDFUrl(url,browser) 
+  print(url) 
   PDFFileName = f'{path}/P_{date.strftime("%Y_%m_%d")}.pdf'
-  publico_auth = browser.get_cookie('publico_auth')
-  if publico_auth is not None:
-    cookiesRequest = { 'publico_auth': publico_auth['value']}
-    pdfContent = requests.post(PDFUrl, stream = True, cookies = cookiesRequest)
-    if pdfContent.status_code == 200:
-      pdfContent.raw.decode_content = True 
-      with open(PDFFileName,'wb') as f:
-        shutil.copyfileobj(pdfContent.raw, f)
-        print(f'done: {date}')
+  if os.path.isfile(PDFFileName) == False :
+    PDFUrl = getPDFUrl(url,browser)
+    publico_auth = browser.get_cookie('publico_auth')
+    if publico_auth is not None:
+      cookiesRequest = { 'publico_auth': publico_auth['value']}
+      pdfContent = requests.post(PDFUrl, stream = True, cookies = cookiesRequest)
+      if pdfContent.status_code == 200:
+        pdfContent.raw.decode_content = True 
+        with open(PDFFileName,'wb') as f:
+          shutil.copyfileobj(pdfContent.raw, f)
+          print(f'done: {date}')
+      else:
+          print(f'error in url: {url}')
     else:
-        print(f'error in url: {url}')
+      print("Error Auth")
+      os.remove("cookies.pkl")
   else:
-    print("Error Auth")
-    os.remove("cookies.pkl")
+    print(f"already downloaded: {PDFFileName}")
 
 
 # o modulo selenium simula um navegador, o que é necessário visto que o Público
@@ -61,7 +65,8 @@ def getBrowser():
   chrome_options.experimental_options["prefs"] = chrome_prefs
   chrome_prefs["profile.default_content_settings"] = {"images": 2}
   browser = webdriver.Chrome(options=chrome_options)
-  browser.implicitly_wait(10)
+  browser.implicitly_wait(20)
+  browser.set_page_load_timeout(20)
   urlLogin = "https://www.publico.pt"
   urlJornal = "https://www.publico.pt/jornal/"
   browser.get(urlJornal)
@@ -88,7 +93,7 @@ def getBrowser():
 
 
 browser = getBrowser()
-periods = ["2021-04-09/2021-05-01"]
+periods = ["2021-01-01/2021-12-31"]
 for period in periods:
     periodArray = period.split('/')
     start = datetime.fromisoformat(periodArray[0])
@@ -100,7 +105,8 @@ for period in periods:
         current += timedelta(days=1)
       except:
         print (current)
-      time.sleep(5)
+      time.sleep(2)
+      
       
 
 
