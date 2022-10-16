@@ -9,6 +9,7 @@ from urllib.parse import urlencode
 from datetime import datetime, timedelta
 from pathlib import Path
 import requests
+import img2pdf
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
@@ -33,21 +34,15 @@ def screenshot(subject):
 
 def authentication():
     """authentication method for legal operations"""
-    if os.path.isfile('cookies_folha.pkl'):
-        cookies = pickle.load(open("cookies_folha.pkl", "rb"))
-        for cookie in cookies:
-            browser.add_cookie(cookie)
-    else:
-        browser.get(URL_LOGIN)
-        WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.ID, "registerEmail")))
-        screenshot('login')
-        browser.find_element_by_id("registerEmail").send_keys(os.environ.get("FOLHA_USERNAME"))
-        screenshot('login')
-        browser.find_element_by_id("registerPassword").send_keys(os.environ.get("FOLHA_PASSWORD"))
-        screenshot('login')
-        browser.find_element_by_xpath('//*[@id="login"]/div[4]/button').click()
-        WebDriverWait(browser, 20)
-        pickle.dump( browser.get_cookies(), open("cookies_folha.pkl","wb"))
+    browser.get(URL_LOGIN)
+    WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.ID, "registerEmail")))
+    screenshot('login')
+    browser.find_element_by_id("registerEmail").send_keys(os.environ.get("FOLHA_USERNAME"))
+    screenshot('login')
+    browser.find_element_by_id("registerPassword").send_keys(os.environ.get("FOLHA_PASSWORD"))
+    screenshot('login')
+    WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="login"]/div[4]/button'))).click()
+    WebDriverWait(browser, 20)
         
 def get_reader_url(url_search):
     browser.get(url_search)
@@ -64,6 +59,7 @@ def get_pages(url_reader, path):
     newspaper = soup.find("div", {"id": "slider-wrapper"})
     pages = newspaper.find_all("figure")
     page_number = 1
+    page_file_names = []
     for page in (pages):
         img = page.find("img")
         page_download_url = img.get('data-zoom')
@@ -74,10 +70,11 @@ def get_pages(url_reader, path):
             img_content.raw.decode_content = True 
             with open(img_filename,'wb') as f:
                 shutil.copyfileobj(img_content.raw, f)
+            page_file_names.append(img_filename)
         else:
             print(f'error downloading page {page_number}')
         page_number = page_number + 1
-    
+    return page_file_names
     
 def get_pdf(date):
     """Make a pdf file with all pages of a date"""
@@ -102,6 +99,16 @@ def get_pdf(date):
     print(f'Starting edition {date}')
     temp_path = get_path(f'tmp_{year}_{month}_{day}')
     get_pages(url_reader, temp_path)
+    imgs = []
+    path_pdf = get_path(f'FolhaPDF/{year}') 
+    pdf_filename = f'{path_pdf}/F_{date.strftime("%Y_%m_%d")}.pdf'
+    for page_file_name in os.listdir(temp_path):
+        path = os.path.join(temp_path, page_file_name)
+        if os.path.isdir(path):
+            continue
+        imgs.append(path)
+        with open(pdf_filename,"wb") as f:
+            f.write(img2pdf.convert(imgs)) 
     print(f'Finished edition {date}')
     
 
