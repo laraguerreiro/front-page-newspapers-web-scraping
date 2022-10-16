@@ -108,7 +108,8 @@ def get_pdf(date):
             continue
         imgs.append(path)
         with open(pdf_filename,"wb") as f:
-            f.write(img2pdf.convert(imgs)) 
+            f.write(img2pdf.convert(imgs))
+    shutil.rmtree(temp_path)
     print(f'Finished edition {date}')
     
 
