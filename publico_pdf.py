@@ -52,38 +52,38 @@ def getPDF(date, browser):
 # o modulo selenium simula um navegador, o que é necessário visto que o Público
 #  exige que se esteja autenticado para ter acesso aos pdfs de seu arquivo.
 def getBrowser():
-  chrome_options = Options()
-  chrome_options.add_argument("--headless")
-  chrome_options.add_argument("--no-sandbox")
-  chrome_options.add_argument("--disable-dev-shm-usage")
-  chrome_options.add_argument("--incognito")
-  chrome_prefs = {}
-  chrome_options.experimental_options["prefs"] = chrome_prefs
-  chrome_prefs["profile.default_content_settings"] = {"images": 2}
-  browser = webdriver.Chrome(options=chrome_options)
-  browser.implicitly_wait(10)
-  urlLogin = "https://www.publico.pt"
-  urlJornal = "https://www.publico.pt/jornal/"
-  browser.get(urlJornal)
-  if os.path.isfile('cookies.pkl'):
-    cookies = pickle.load(open("cookies.pkl", "rb"))
-    for cookie in cookies:
-      browser.add_cookie(cookie)
-  else:
-    browser.get(urlLogin)
-    WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.CLASS_NAME, "css-fxmqu"))).click()
-    browser.find_element_by_xpath('//*[@id="masthead-container"]/div[2]/ul/li[3]/button').click()
-    WebDriverWait(browser, 20).until(EC.text_to_be_present_in_element_value((By.CLASS_NAME, "login-form__button"), "Continuar"))
-    browser.find_element_by_id("login-email-input").send_keys(os.environ.get("PUBLICO_USERNAME"))
-    browser.find_element_by_class_name("login-form__button").click()
-    WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.ID, "login-password-input")))
-    browser.find_element_by_id("login-password-input").send_keys(os.environ.get("PUBLICO_PASSWORD"))
-    browser.find_element_by_xpath('//*[@id="login-form-password"]/div/div[4]/input').click()
-    WebDriverWait(browser, 40)
-    browser.get(urlLogin)
-    browser.get(urlLogin)
-    pickle.dump( browser.get_cookies(), open("cookies.pkl","wb"))
-  return browser
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--incognito")
+    chrome_prefs = {}
+    chrome_options.experimental_options["prefs"] = chrome_prefs
+    chrome_prefs["profile.default_content_settings"] = {"images": 2}
+    browser = webdriver.Chrome(options=chrome_options)
+    browser.implicitly_wait(10)
+    urlLogin = "https://www.publico.pt"
+    urlJornal = "https://www.publico.pt/jornal/"
+    browser.get(urlJornal)
+    if os.path.isfile('cookies.pkl'):
+        cookies = pickle.load(open("cookies.pkl", "rb"))
+        for cookie in cookies:
+        browser.add_cookie(cookie)
+    else:
+        browser.get(urlLogin)
+        WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.CLASS_NAME, "css-fxmqu"))).click()
+        browser.find_element_by_xpath('//*[@id="masthead-container"]/div[2]/ul/li[3]/button').click()
+        WebDriverWait(browser, 20).until(EC.text_to_be_present_in_element_value((By.CLASS_NAME, "login-form__button"), "Continuar"))
+        browser.find_element_by_id("login-email-input").send_keys(os.environ.get("PUBLICO_USERNAME"))
+        browser.find_element_by_class_name("login-form__button").click()
+        WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.ID, "login-password-input")))
+        browser.find_element_by_id("login-password-input").send_keys(os.environ.get("PUBLICO_PASSWORD"))
+        browser.find_element_by_xpath('//*[@id="login-form-password"]/div/div[4]/input').click()
+        WebDriverWait(browser, 40)
+        browser.get(urlLogin)
+        browser.get(urlLogin)
+        pickle.dump( browser.get_cookies(), open("cookies.pkl","wb"))
+    return browser
 
 
 
