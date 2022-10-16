@@ -1,4 +1,5 @@
 """Script to get editions from folha de são paulo newspaper"""
+import glob
 import pickle
 import shutil
 import time
@@ -41,7 +42,11 @@ def authentication():
     screenshot('login')
     browser.find_element_by_id("registerPassword").send_keys(os.environ.get("FOLHA_PASSWORD"))
     screenshot('login')
-    WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="login"]/div[4]/button'))).click()
+    try:
+        WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="login"]/div[4]/button'))).click()
+    except:
+        browser.refresh()
+        screenshot('error_login')
     WebDriverWait(browser, 20)
         
 def get_reader_url(url_search):
@@ -65,11 +70,14 @@ def get_pages(url_reader, path):
         page_download_url = img.get('data-zoom')
         img_content = requests.get(page_download_url, stream = True)
         extension = img_content.headers['content-type'].split("/")[-1]
-        img_filename = f'{path}/page_{page_number}.{extension}'
+        if page_number < 10:
+            img_filename = f'{path}/0{page_number}_page.{extension}'
+        else:
+            img_filename = f'{path}/{page_number}_page.{extension}'
         if img_content.status_code == 200:
             img_content.raw.decode_content = True 
-            with open(img_filename,'wb') as f:
-                shutil.copyfileobj(img_content.raw, f)
+            with open(img_filename,'wb') as file:
+                shutil.copyfileobj(img_content.raw, file)
             page_file_names.append(img_filename)
         else:
             print(f'error downloading page {page_number}')
@@ -102,7 +110,9 @@ def get_pdf(date):
     imgs = []
     path_pdf = get_path(f'FolhaPDF/{year}') 
     pdf_filename = f'{path_pdf}/F_{date.strftime("%Y_%m_%d")}.pdf'
-    for page_file_name in os.listdir(temp_path):
+    list_of_files = sorted( filter( lambda x: os.path.isfile(os.path.join(temp_path, x)),
+                        os.listdir(temp_path) ) )
+    for page_file_name in list_of_files:
         path = os.path.join(temp_path, page_file_name)
         if os.path.isdir(path):
             continue
@@ -120,12 +130,13 @@ def get_browser():
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--incognito")
+    chrome_options.add_argument("--window-size=2560,1440")
     chrome_prefs = {}
     chrome_options.experimental_options["prefs"] = chrome_prefs
     chrome_prefs["profile.default_content_settings"] = {"images": 2}
     new_browser = webdriver.Chrome(options=chrome_options)
     new_browser.implicitly_wait(20)
-    new_browser.set_page_load_timeout(20)
+    new_browser.set_page_load_timeout(60)
     return new_browser
 
 
@@ -134,7 +145,7 @@ URL_NEWSPAPER = "https://acervo.folha.com.br"
 
 browser = get_browser()
 authentication()
-periods = ["2021-01-01/2021-01-01"]
+periods = ["2021-01-01/2021-01-03"]
 for period in periods:
     period_array = period.split('/')
     start = datetime.fromisoformat(period_array[0])
