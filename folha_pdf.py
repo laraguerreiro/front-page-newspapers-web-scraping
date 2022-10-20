@@ -81,6 +81,7 @@ def get_pages(url_reader, path):
                 shutil.copyfileobj(img_content.raw, file)
             page_file_names.append(img_filename)
             print(f'Downloaded page {page_number} of {len(pages)}')
+            page_number = page_number + 1
         else:
             print(f'error downloading page {page_number}, i will try again')
     return page_file_names
