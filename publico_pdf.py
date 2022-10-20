@@ -93,7 +93,7 @@ def getBrowser():
 
 
 browser = getBrowser()
-periods = ["2021-03-17/2021-12-31"]
+periods = ["2004-06-01/2004-08-31"]
 for period in periods:
     periodArray = period.split('/')
     start = datetime.fromisoformat(periodArray[0])

@@ -1,4 +1,5 @@
 """Script to get editions from folha de são paulo newspaper"""
+import gc
 import glob
 import pickle
 import shutil
@@ -79,8 +80,7 @@ def get_pages(url_reader, path):
             with open(img_filename,'wb') as file:
                 shutil.copyfileobj(img_content.raw, file)
             page_file_names.append(img_filename)
-            page_number = page_number + 1
-            
+            print(f'Downloaded page {page_number} of {len(pages)}')
         else:
             print(f'error downloading page {page_number}, i will try again')
     return page_file_names
@@ -113,6 +113,7 @@ def get_pdf(date):
     pdf_filename = f'{path_pdf}/F_{date.strftime("%Y_%m_%d")}.pdf'
     list_of_files = sorted( filter( lambda x: os.path.isfile(os.path.join(temp_path, x)),
                         os.listdir(temp_path) ) )
+    print (f'Starting PDF {pdf_filename}')
     for page_file_name in list_of_files:
         path = os.path.join(temp_path, page_file_name)
         if os.path.isdir(path):
@@ -120,7 +121,10 @@ def get_pdf(date):
         imgs.append(path)
         with open(pdf_filename,"wb") as f:
             f.write(img2pdf.convert(imgs))
+    print (f'Finished PDF {pdf_filename}')
+    print (f'Removing tmp path {temp_path}')
     shutil.rmtree(temp_path)
+    print (f'Removed tmp path {temp_path}')
     print(f'Finished edition {date}')
     
 
@@ -148,6 +152,7 @@ browser = get_browser()
 authentication()
 periods = ["2018-02-19/2018-12-31"]
 for period in periods:
+    gc.collect()
     period_array = period.split('/')
     start = datetime.fromisoformat(period_array[0])
     end = datetime.fromisoformat(period_array[1])
