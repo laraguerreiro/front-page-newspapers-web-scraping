@@ -68,7 +68,7 @@ def get_pages(url_reader, path):
     for page in (pages):
         img = page.find("img")
         page_download_url = img.get('data-zoom')
-        img_content = requests.get(page_download_url, stream = True)
+        img_content = requests.get(page_download_url, stream = True, timeout=10)
         extension = img_content.headers['content-type'].split("/")[-1]
         if page_number < 10:
             img_filename = f'{path}/0{page_number}_page.{extension}'
@@ -79,9 +79,10 @@ def get_pages(url_reader, path):
             with open(img_filename,'wb') as file:
                 shutil.copyfileobj(img_content.raw, file)
             page_file_names.append(img_filename)
+            page_number = page_number + 1
+            
         else:
-            print(f'error downloading page {page_number}')
-        page_number = page_number + 1
+            print(f'error downloading page {page_number}, i will try again')
     return page_file_names
     
 def get_pdf(date):
@@ -145,7 +146,7 @@ URL_NEWSPAPER = "https://acervo.folha.com.br"
 
 browser = get_browser()
 authentication()
-periods = ["2021-01-01/2021-01-03"]
+periods = ["2018-02-19/2018-12-31"]
 for period in periods:
     period_array = period.split('/')
     start = datetime.fromisoformat(period_array[0])
