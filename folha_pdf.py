@@ -64,6 +64,8 @@ def get_pages(url_reader, path):
     soup = BeautifulSoup(browser.page_source, 'lxml')
     newspaper = soup.find("div", {"id": "slider-wrapper"})
     pages = newspaper.find_all("figure")
+    if len(pages) == 0:
+        raise Exception("Sorry, no pages here!")
     page_number = 1
     page_file_names = []
     for page in (pages):
@@ -151,7 +153,7 @@ URL_NEWSPAPER = "https://acervo.folha.com.br"
 
 browser = get_browser()
 authentication()
-periods = ["2020-01-08/2020-12-31"]
+periods = ["2018-02-19/2018-12-31"]
 for period in periods:
     gc.collect()
     period_array = period.split('/')
