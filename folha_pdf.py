@@ -151,7 +151,7 @@ URL_NEWSPAPER = "https://acervo.folha.com.br"
 
 browser = get_browser()
 authentication()
-periods = ["2018-02-19/2018-12-31"]
+periods = ["2020-01-08/2020-12-31"]
 for period in periods:
     gc.collect()
     period_array = period.split('/')
