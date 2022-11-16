@@ -22,7 +22,7 @@ RUN if [ "${INSTALL_NODE}" = "true" ]; then su vscode -c "umask 0002 && . /usr/l
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
 
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-  && apt-get -y install --no-install-recommends unzip openjdk-11-jdk
+  && apt-get -y install --no-install-recommends unzip openjdk-11-jdk python-dev libxml2-dev libxslt1-dev antiword unrtf poppler-utils tesseract-ocr flac ffmpeg lame libmad0 libsox-fmt-mp3 sox libjpeg-dev swig libpulse-dev tesseract-ocr-por
 
 # Adding trusting keys to apt for repositories
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
