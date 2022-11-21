@@ -42,31 +42,35 @@ table.add_column("Word", style="magenta")
 table.add_column("Page", justify="right", style="green")
 
 def find_in_file(file):
-    pdf_file = open(file,'rb')
-    pdf_reader = PyPDF2.PdfFileReader(pdf_file, strict=False)
-    num_pages = pdf_reader.numPages
-    count = 0
-    text = ""
-    while count < num_pages:
-        page = pdf_reader.getPage(count)
-        page_number = count + 1
-        text = page.extractText()
-        if text == "":
-            print(f'page {page_number} from {file} without text. OCR...')
-            pdf_writer = PyPDF2.PdfFileWriter()
-            pdf_writer.addPage(page)
-            new_file = f'{file}_{page_number}.pdf'
-            pdf_out = open(new_file, 'wb')
-            pdf_writer.write(pdf_out)
-            pdf_out.close()
-            text = textract.process(new_file, method='tesseract', language='por')
-            text = text.decode("utf-8")
-            os.remove(new_file)
-        for word in words:
-            if re.search(word.lower(), text.lower()):
-                data.append([file, word, page_number])
-                table.add_row(file, word, f'{page_number}')
-        count +=1
+    try:
+        pdf_file = open(file,'rb')
+        pdf_reader = PyPDF2.PdfFileReader(pdf_file, strict=False)
+        num_pages = pdf_reader.numPages
+        count = 0
+        text = ""
+        while count < num_pages:
+            page = pdf_reader.getPage(count)
+            page_number = count + 1
+            text = page.extractText()
+            if text == "":
+                print(f'page {page_number} from {file} without text. OCR...')
+                pdf_writer = PyPDF2.PdfFileWriter()
+                pdf_writer.addPage(page)
+                new_file = f'{file}_{page_number}.pdf'
+                pdf_out = open(new_file, 'wb')
+                pdf_writer.write(pdf_out)
+                pdf_out.close()
+                text = textract.process(new_file, method='tesseract', language='por')
+                text = text.decode("utf-8")
+                os.remove(new_file)
+            for word in words:
+                if re.search(word.lower(), text.lower()):
+                    data.append([file, word, page_number])
+                    table.add_row(file, word, f'{page_number}')
+            count +=1
+    except:
+        data.append([file, "file cannot be opened", "0"])
+        table.add_row(file, "file cannot be opened", "0")
     
 i = 0
 for _ in track(range(len(pdf_files)), description=f'[green]Finding in {len(pdf_files) - i} files'):
