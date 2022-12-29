@@ -35,7 +35,12 @@ pdf_files = glob.glob(f'{path}/**/*.pdf', recursive=True)
 
 table = Table(title="Found")
 
+gmt = time.gmtime()
+timestamp = calendar.timegm(gmt)
 header = ['File', 'Word', 'Page']
+with open(f'{timestamp}.csv', 'w', encoding='UTF8', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow(header)
 data = []
 table.add_column("File", style="cyan", no_wrap=True)
 table.add_column("Word", style="magenta")
@@ -66,10 +71,16 @@ def find_in_file(file):
             for word in words:
                 if re.search(word.lower(), text.lower()):
                     data.append([file, word, page_number])
+                    with open(f'{timestamp}.csv', 'a', encoding='UTF8', newline='') as f:
+                        writer = csv.writer(f)
+                        writer.writerow([file, word, page_number]) 
                     table.add_row(file, word, f'{page_number}')
             count +=1
     except:
         data.append([file, "file cannot be opened", "0"])
+        with open(f'{timestamp}.csv', 'a', encoding='UTF8', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([file, "file cannot be opened", "0"])
         table.add_row(file, "file cannot be opened", "0")
     
 i = 0
@@ -79,9 +90,3 @@ for _ in track(range(len(pdf_files)), description=f'[green]Finding in {len(pdf_f
 
 console = Console()
 console.print(table)
-gmt = time.gmtime()
-timestamp = calendar.timegm(gmt)
-with open(f'{timestamp}.csv', 'w', encoding='UTF8', newline='') as f:
-    writer = csv.writer(f)
-    writer.writerow(header)
-    writer.writerows(data)
