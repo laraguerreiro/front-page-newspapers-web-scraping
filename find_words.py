@@ -1,6 +1,4 @@
-from email.policy import strict
-import string
-from time import sleep
+import traceback
 import PyPDF2
 import textract
 import sys
@@ -63,15 +61,19 @@ def find_in_file(file):
                 text = textract.process(new_file, method='tesseract', language='por')
                 text = text.decode("utf-8")
                 os.remove(new_file)
+            found_words = []
             for word in words:
                 if re.search(word.lower(), text.lower()):
-                    data.append([file, word, page_number])
-                    table.add_row(file, word, f'{page_number}')
+                    found_words.append(word)
+            if len(found_words) > 0:
+                words_list = ', '.join([str(elem) for elem in found_words])
+                data.append([file, words_list, page_number])
+                table.add_row(file, words_list, f'{page_number}')
             count +=1
-    except:
+    except: # pylint: disable=bare-except
+        traceback.print_exc()
         data.append([file, "file cannot be opened", "0"])
         table.add_row(file, "file cannot be opened", "0")
-    
 i = 0
 for _ in track(range(len(pdf_files)), description=f'[green]Finding in {len(pdf_files) - i} files'):
     find_in_file(pdf_files[i])
