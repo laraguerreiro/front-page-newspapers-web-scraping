@@ -15,7 +15,7 @@ import calendar
 import time
 
 pretty.install()
-
+     
 if len(sys.argv) != 3:
     sys.exit('Usage: python find_words.py path words=word1,word2,"word with space"')
 if os.path.exists(sys.argv[1]) == False:
@@ -33,7 +33,12 @@ pdf_files = glob.glob(f'{path}/**/*.pdf', recursive=True)
 
 table = Table(title="Found")
 
+gmt = time.gmtime()
+timestamp = calendar.timegm(gmt)
 header = ['File', 'Word', 'Page']
+with open(f'{timestamp}.csv', 'w', encoding='UTF8', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow(header)
 data = []
 table.add_column("File", style="cyan", no_wrap=True)
 table.add_column("Word", style="magenta")
@@ -68,11 +73,17 @@ def find_in_file(file):
             if len(found_words) > 0:
                 words_list = ', '.join([str(elem) for elem in found_words])
                 data.append([file, words_list, page_number])
+                with open(f'{timestamp}.csv', 'a', encoding='UTF8', newline='') as f:
+                    writer = csv.writer(f)
+                    writer.writerow([file, words_list, page_number])
                 table.add_row(file, words_list, f'{page_number}')
             count +=1
     except: # pylint: disable=bare-except
         traceback.print_exc()
         data.append([file, "file cannot be opened", "0"])
+        with open(f'{timestamp}.csv', 'a', encoding='UTF8', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([file, "file cannot be opened", "0"])
         table.add_row(file, "file cannot be opened", "0")
 i = 0
 for _ in track(range(len(pdf_files)), description=f'[green]Finding in {len(pdf_files) - i} files'):
@@ -81,9 +92,3 @@ for _ in track(range(len(pdf_files)), description=f'[green]Finding in {len(pdf_f
 
 console = Console()
 console.print(table)
-gmt = time.gmtime()
-timestamp = calendar.timegm(gmt)
-with open(f'{timestamp}.csv', 'w', encoding='UTF8', newline='') as f:
-    writer = csv.writer(f)
-    writer.writerow(header)
-    writer.writerows(data)
